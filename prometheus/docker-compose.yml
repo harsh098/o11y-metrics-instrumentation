@@ -1,0 +1,32 @@
+services:
+  prometheus:
+    image: prom/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.enable-remote-write-receiver"
+      - "--web.enable-otlp-receiver"
+    volumes:
+      - "./prometheus.yml:/etc/prometheus/prometheus.yml"
+      - "./rules.yml:/etc/prometheus/rules.yml"
+    networks:
+      - localprom
+    ports:
+      - 9090:9090
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  alert-manager:
+    image: prom/alertmanager
+    volumes:
+      - "./alertmanager.yml:/alertmanager/alertmanager.yml"
+    networks:
+      - localprom
+    ports:
+      - 9093:9093
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+
+networks:
+  localprom:
+    driver: bridge

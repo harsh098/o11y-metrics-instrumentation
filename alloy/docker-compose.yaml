@@ -1,0 +1,16 @@
+services:
+  grafana:
+    image: grafana/alloy:latest
+    container_name: grafana-alloy 
+    restart: unless-stopped
+    command: >
+      run --server.http.listen-addr=0.0.0.0:12345 --storage.path=/var/lib/alloy/data
+      /etc/alloy/config.alloy
+    ports:
+      - '12345:12345'
+      - '4417:4317'
+      - '5317:5317'
+    volumes:
+     - ./config.alloy:/etc/alloy/config.alloy
+    extra_hosts:
+     - 'host.docker.internal:host-gateway' 

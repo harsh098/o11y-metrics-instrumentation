@@ -1,0 +1,67 @@
+logging {
+  level  = "info"
+  format = "logfmt"
+}
+
+otelcol.receiver.otlp "fastapi_svc" {
+	grpc {
+	  endpoint = "0.0.0.0:4317"
+	}
+
+	 output {
+   		metrics = []
+    		logs    = []
+    		traces  = [otelcol.connector.servicegraph.tempo.input, otelcol.exporter.otlp.tempo.input]
+  	}
+}
+
+otelcol.receiver.otlp "fastapi_svc_metrics_receiver" {
+	grpc {
+	 endpoint = "0.0.0.0:5317"
+	}
+
+	output {
+		metrics = [otelcol.exporter.prometheus.metrics_exporter.input]
+		logs = []
+		traces = []
+
+	}
+
+}
+
+otelcol.connector.servicegraph "tempo" {
+  dimensions = ["http.method", "http.target"]
+  output {
+    metrics = [otelcol.exporter.otlp.tempo.input]
+  }
+}
+
+otelcol.exporter.otlp "tempo" {
+	client {
+		endpoint = "host.docker.internal:4317"
+		tls {
+		    insecure = true
+		    insecure_skip_verify = true
+		}
+	}
+} 
+
+otelcol.exporter.prometheus "metrics_exporter" {
+	forward_to = [prometheus.remote_write.metrics_service.receiver]
+}
+
+prometheus.remote_write "metrics_service" {
+    endpoint {
+        url = "http://host.docker.internal:9090/api/v1/write"
+
+        // basic_auth {
+        //   username = "admin"
+        //   password = "admin"
+        // }
+	
+	tls_config {
+	   insecure_skip_verify = true
+	}
+    }
+}
+

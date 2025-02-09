@@ -13,3 +13,7 @@ scrape_configs:
    static_configs:
     - targets:
        - prometheus:9090
+ - job_name: express
+   static_configs:
+    - targets:
+       - host.docker.internal:8000
